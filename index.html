@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mining Innovation Summit 2026 - Master Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cyan-summit: #06b6d4;
+            --purple-summit: #8b5cf6;
+            --bg-light: #f1f5f9;
+        }
+        body {
+            font-family: 'Kumbh Sans', sans-serif;
+            background-color: var(--bg-light);
+            color: #1e293b;
+            overflow: hidden;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, var(--cyan-summit), var(--purple-summit));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--cyan-summit), var(--purple-summit));
+        }
+        .nav-item.active {
+            background: white !important;
+            color: var(--cyan-summit) !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            border-right: 4px solid var(--cyan-summit);
+        }
+        /* Destaque em degradê para o item Eixos Temáticos */
+        .nav-item-highlight {
+            background: linear-gradient(135deg, var(--cyan-summit), var(--purple-summit)) !important;
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
+        }
+        .nav-item-highlight span {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .nav-item-highlight.active {
+            background: white !important;
+            color: var(--cyan-summit) !important;
+            border-right: 4px solid var(--purple-summit);
+        }
+
+        .section-content { display: none; animation: fadeIn 0.4s ease-out; }
+        .section-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Modal Overlay */
+        #modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            animation: fadeIn 0.3s ease-out;
+        }
+        #modal-overlay.active { display: flex; }
+        #modal-content {
+            max-width: 850px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.95);
+            transition: transform 0.3s ease-out;
+        }
+        #modal-overlay.active #modal-content { transform: scale(1); }
+
+        /* Animação do Flywheel */
+        .flywheel-scene {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            margin: 20px auto;
+        }
+        .flywheel-rotation-layer {
+            position: absolute;
+            inset: 0;
+            animation: stepRotate 45s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        @keyframes stepRotate {
+            0%, 10% { transform: rotate(0deg); }
+            16.6%, 26% { transform: rotate(60deg); }
+            33.3%, 43% { transform: rotate(120deg); }
+            50%, 60% { transform: rotate(180deg); }
+            66.6%, 76% { transform: rotate(240deg); }
+            83.3%, 93% { transform: rotate(300deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .node {
+            position: absolute; 
+            width: 135px; 
+            height: 135px; 
+            border-radius: 50%;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            text-align: center;
+            font-size: 0.72rem; 
+            font-weight: 800; 
+            padding: 14px; 
+            border: 2px solid rgba(6, 182, 212, 0.4); 
+            background: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            line-height: 1.1;
+            z-index: 20;
+            animation: counterStepRotate 45s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes counterStepRotate {
+            0%, 10% { transform: rotate(0deg); }
+            16.6%, 26% { transform: rotate(-60deg); }
+            33.3%, 43% { transform: rotate(-120deg); }
+            50%, 60% { transform: rotate(-180deg); }
+            66.6%, 76% { transform: rotate(-240deg); }
+            83.3%, 93% { transform: rotate(-300deg); }
+            100% { transform: rotate(-360deg); }
+        }
+
+        /* Regras de Impressão */
+        @media print {
+            aside, .lang-toggle, button, .nav-item { display: none !important; }
+            main { width: 100% !important; padding: 0 !important; overflow: visible !important; }
+            iframe { display: none !important; }
+            .print-link { display: block !important; color: var(--cyan-summit); text-decoration: underline; margin-top: 10px; font-size: 12px; }
+            .no-print { display: none !important; }
+        }
+        .print-link { display: none; }
+
+        /* Seletor de Idioma */
+        .lang-toggle {
+            display: flex;
+            background: #e2e8f0;
+            border-radius: 20px;
+            padding: 2px;
+            width: 80px;
+            height: 32px;
+            position: relative;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+        .lang-btn {
+            flex: 1;
+            z-index: 2;
+            font-size: 10px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s;
+        }
+        .lang-active-bg {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 37px;
+            height: 28px;
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1;
+        }
+        body.lang-en .lang-active-bg { transform: translateX(39px); }
+        body.lang-en .lang-btn-pt { color: #94a3b8; }
+        body.lang-pt .lang-btn-en { color: #94a3b8; }
+
+        /* Gráficos da Jornada */
+        .bar-chart-container { display: flex; align-items: flex-end; gap: 32px; height: 220px; width: 100%; justify-content: center; }
+        .bar { width: 60px; border-radius: 8px 8px 0 0; position: relative; transition: height 1s; }
+        .bar-label { position: absolute; bottom: -32px; left: 50%; transform: translateX(-50%); font-size: 12px; font-weight: 700; color: #64748b; }
+        .bar-value { position: absolute; top: -28px; left: 50%; transform: translateX(-50%); font-size: 14px; font-weight: 700; }
+
+        .donut-container { position: relative; width: 160px; height: 160px; }
+        .donut-svg { transform: rotate(-90deg); }
+        .donut-bg { fill: none; stroke: #e2e8f0; stroke-width: 14; }
+        .donut-fill { fill: none; stroke: var(--cyan-summit); stroke-width: 14; stroke-dasharray: 452; stroke-dashoffset: 187; stroke-linecap: round; }
+    </style>
+</head>
+<body class="flex h-screen lang-pt">
+
+    <!-- Sidebar Menu -->
+    <aside class="w-72 bg-slate-50 border-r border-slate-200 flex flex-col h-full z-20">
+        <div class="p-8 border-b border-slate-100">
+            <h1 class="text-xl font-bold tracking-tight text-slate-800 leading-tight">MINING INNOVATION</h1>
+            <h2 class="text-xs font-bold gradient-text uppercase tracking-[0.2em]">Summit 2026</h2>
+            
+            <div class="lang-toggle" onclick="toggleLanguage()">
+                <div class="lang-active-bg"></div>
+                <div class="lang-btn lang-btn-pt">PT</div>
+                <div class="lang-btn lang-btn-en">EN</div>
+            </div>
+        </div>
+        
+        <nav class="flex-1 px-4 space-y-1 mt-6" id="sidebar-nav">
+            <!-- Gerado via JS -->
+        </nav>
+        
+        <div class="p-6 text-[10px] text-slate-400 font-bold uppercase tracking-widest border-t border-slate-200">
+            Mining Hub &copy; 2026
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto relative p-12" id="main-content">
+        <!-- Seções renderizadas dinamicamente -->
+    </main>
+
+    <!-- Modal Overlay -->
+    <div id="modal-overlay" onclick="handleBackdropClick(event)">
+        <div id="modal-content" class="glass-card p-12 rounded-[3.5rem] bg-white relative">
+            <button onclick="closeModal()" class="absolute top-8 right-8 text-slate-400 hover:text-slate-800 transition-colors no-print">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentLang = 'pt';
+        let currentSection = 'intro';
+
+        const translations = {
+            pt: {
+                nav: [
+                    { id: 'intro', num: '01', text: 'O Summit' },
+                    { id: 'history', num: '02', text: 'Nossa Jornada' },
+                    { id: 'trilha', num: '03', text: 'Trilha de Conhecimento' },
+                    { id: 'flywheel', num: '04', text: 'Conceito Estratégico 2026' },
+                    { id: 'filter', num: '05', text: 'Filtro Estratégico' },
+                    { id: 'agenda', num: '06', text: 'Eixos temáticos' },
+                    { id: 'mission', num: '07', text: 'Indicação de palestrante' }
+                ],
+                intro: {
+                    head: 'Boas-vindas',
+                    title: 'O Mining Innovation Summit',
+                    desc: 'O Mining Innovation Summit é uma experiência transformadora. Promovido pelo <strong>Mining Hub</strong>, o Summit proporciona um ambiente de discussão sobre inovação, futuro e estratégias para o setor mineral, tornando-se um palco onde os principais players da indústria se reúnem para debater e compartilhar insights. Unindo tecnologia, sustentabilidade e inovação, nosso objetivo é traçar o futuro da mineração em uma abordagem colaborativa e orientada a resultados.'
+                },
+                history: {
+                    head: 'Trajetória de Impacto',
+                    title: 'Nossa Jornada',
+                    subtitle: 'Os números e resultados alcançados ao longo das três edições do MIS demonstram o seu valor, impacto e relevância. <span class="text-cyan-600 font-bold ml-1">Dados agregados das 3 edições.</span>',
+                    stats: ['NPS (Excelência)', 'Views Social Media', 'Conexões Geradas', 'Horas de Conteúdo', 'Palestrantes', 'Impressões LinkedIn', 'Público Presencial', 'Palestrantes Internacionais'],
+                    blocks: [
+                        { h: 'Crescimento consistente e acelerado', p: 'Em três edições, o Summit apresentou um crescimento expressivo de público, com um aumento de mais de 180% na participação presencial, saindo de 250 participantes em 2023 para 702 profissionais em 2025.' },
+                        { h: 'Evolução do Público', p: 'Consolidação histórica do engajamento do setor mineral com a inovação aberta.' },
+                        { h: 'Fidelidade das Marcas', p: 'Demonstramos uma taxa de retenção de parceiros de <span class="gradient-text font-bold text-2xl">87,5%</span> entre as últimas edições.' }
+                    ],
+                    charts: {
+                        evolution: 'Evolução do Público (Presencial)',
+                        decision: 'Poder de Decisão',
+                        decisionDesc: 'Fatia majoritária composta por cargos de alta gestão.',
+                        highMgmt: 'Perfil de Alta Gestão',
+                        highMgmtDesc: 'O Summit é frequentado por quem decide: 58,5% do público é liderança (C-Level e Gerentes).',
+                        excellence: 'Excelência e Networking Real',
+                        excellenceDesc: 'Histórico de satisfação excepcional, com o NPS consistentemente elevado, gerando mais de 200 conexões estratégicas diretas.'
+                    }
+                },
+                trilha: {
+                    head: 'Curadoria de Valor',
+                    title: 'O DNA da Inovação em Nossas Edições',
+                    subtitle: 'Explore os temas e marcos históricos que consolidaram o Summit como o palco da inovação mineral.',
+                    btn: 'Explorar Edição'
+                },
+                flywheel: {
+                    head: 'A inspiração',
+                    title: 'Mining Innovation Summit 2026',
+                    subtitle: 'Inovação na Velocidade do Valor',
+                    nodes: ['ESTRATÉGIA E CAPITAL', 'FINANÇAS VERDES', 'CIÊNCIA DA ESCALA', 'PESQUISA APLICADA', 'REPUTAÇÃO E STEWARDSHIP', 'CULTURA E ALTA PERFORMANCE'],
+                    p1: 'O Mining Innovation Summit 2026 consolida a inovação como uma disciplina de execução.',
+                    p2: 'Superamos o debate conceitual para focar na métrica que define a liderança contemporânea: a capacidade organizacional de transformar inovação em valor mensurável. No ritmo do nosso Flywheel, a inteligência se converte em resultado, e o futuro se torna um ativo presente.',
+                    p3: 'Através da estrutura do Innovation Flywheel, organizamos e conectamos os vetores que sustentam decisões estratégicas no setor mineral: o rigor da pesquisa aplicada, a visão estratégica do mercado de capitais e o poder de escala de indústrias pesadas de alta performance. <span class="text-slate-900 font-bold">Este é o fórum essencial para quem decide — e para quem constrói as condições da decisão.</span>',
+                    acts: [
+                        { h: 'A Relevância dos Ativos Estratégicos', p: 'Os recursos minerais consolidam-se como o ativo de maior valor global na nova economia de dados. É hora de uma nova cadência de execução.' },
+                        { h: 'O Atrito da Execução', p: 'O alinhamento entre Board, liderança executiva e operação torna-se condição crítica para escalar inovação com responsabilidade.' },
+                        { h: 'A Velocidade do Valor', p: 'Quando Capital, Ciência e Execução trabalham em sincronia, a inovação torna-se o motor perpétuo do lucro e da perenidade do negócio.' }
+                    ],
+                    vectors: {
+                        title: 'Vetores Estratégicos',
+                        subtitle: 'A tradução da nossa visão em pilares fundamentais de impacto e entrega',
+                        v: [
+                            { t: 'Direção', d: 'Capital & Board:<br><span class="font-normal text-slate-500 text-sm">Definem a direção do valor</span>' },
+                            { t: 'Pilar', d: 'R&D e Ciência:<br><span class="font-normal text-slate-500 text-sm">Fundamentos do valor</span>' },
+                            { t: 'Velocidade', d: 'Escala & Tecnologia:<br><span class="font-normal text-slate-500 text-sm">Velocidade ao valor</span>' },
+                            { t: 'Perenidade', d: 'Reputação & Pessoas:<br><span class="font-normal text-slate-500 text-sm">Perenidade do valor</span>' }
+                        ]
+                    }
+                },
+                agenda: {
+                    head: 'Aceleração de Valor',
+                    title: 'Eixos temáticos 2026',
+                    subtitle: 'Nosso objetivo é estruturar o conteúdo e programação do Summit em torno dos 6 eixos do flywheel.',
+                    dynamics: 'Dinâmica do Evento',
+                    dynamicsDesc: 'O MIS 2026 rompe com modelos tradicionais. Criamos uma cadência que mescla o rigor da pesquisa com a agilidade do mercado financeiro e a experiência operacional de indústrias de elite.',
+                    formats: ['TED Talks Style', 'Fireside Chats', 'Mesas de Discussão'],
+                    btn: 'Ver Detalhes'
+                },
+                filter: {
+                    head: 'Direcionamentos para programa e curadoria',
+                    title: 'Filtro Estratégico',
+                    p1: 'Para a edição de 2026, estabelecemos um critério rigoroso de curadoria: a <span class="text-cyan-600 font-bold">rejeição ao óbvio</span>. Não queremos repetir os temas que já saturaram outros fóruns de mineração.',
+                    p2: 'Nossa proposta é sair do lugar comum, abandonando as frases de efeito e o conteúdo genérico para entregar profundidade técnica e estratégica. O foco é tangibilizar a inovação.',
+                    badTitle: 'Saturado / Óbvio (Lugar Comum)',
+                    badItems: [
+                        '"Mineração fundamental para a transição energética" (Frase feita).',
+                        'Listas genéricas de minerais críticos e geopolítica básica.',
+                        'Palestras puramente teóricas sobre o "potencial" da IA.',
+                        'ESG Institucional e abstrato sem KPIs reais.',
+                        'Ciclos eternos de pilotos "laboratoriais" que nunca chegam à escala global.'
+                    ],
+                    goodTitle: 'Pragmático / Valor (Nosso Foco)',
+                    goodBeyond: 'Queremos ir além: Tangibilizar a Inovação',
+                    goodItems: [
+                        'Speed to Value: Velocidade de conversão tech em valor financeiro.',
+                        'Green Finance: Precificação real de ativos e custo de capital.',
+                        'Physical AI: Autonomia e robótica na linha de frente operacional.',
+                        'Science to Business: Pesquisa aplicada com cases de escala.',
+                        'Tangibilização: O foco na execução que transforma o balanço.'
+                    ]
+                },
+                mission: {
+                    head: 'Indicação de palestrante',
+                    title: 'Curadoria de Palestrantes',
+                    subtitle: 'Reunimos os eixos estratégicos que orientam a curadoria desta edição. Ao indicar um palestrante, considere profissionais que liderem decisões estratégicas, projetos em escala ou transformações organizacionais relevantes, no Brasil e no mundo. <strong>A indicação não implica, necessariamente, a seleção do palestrante.</strong>',
+                    btn: 'Indicar Palestrante'
+                }
+            },
+            en: {
+                nav: [
+                    { id: 'intro', num: '01', text: 'The Summit' },
+                    { id: 'history', num: '02', text: 'Our Journey' },
+                    { id: 'trilha', num: '03', text: 'Knowledge Trail' },
+                    { id: 'flywheel', num: '04', text: '2026 Strategic Concept' },
+                    { id: 'filter', num: '05', text: 'Strategic Filter' },
+                    { id: 'agenda', num: '06', text: 'Thematic Axes' },
+                    { id: 'mission', num: '07', text: 'Speaker Nomination' }
+                ],
+                intro: {
+                    head: 'Welcome',
+                    title: 'The Mining Innovation Summit',
+                    desc: 'The Mining Innovation Summit is a transformative experience. Promoted by the <strong>Mining Hub</strong>, the Summit provides a forum for discussion on innovation, the future, and strategies for the mineral sector, serving as a stage where the industry\'s key players meet to debate and share insights. Uniting technology, sustainability, and innovation, our goal is to map the future of mining through a collaborative and results-oriented approach.'
+                },
+                history: {
+                    head: 'Impact Trajectory',
+                    title: 'Our Journey',
+                    subtitle: 'The figures and results achieved throughout the three MIS editions demonstrate its value, impact, and relevance. <span class="text-cyan-600 font-bold ml-1">Aggregated data from the 3 editions.</span>',
+                    stats: ['NPS (Excellence)', 'Social Media Views', 'Connections Generated', 'Content Hours', 'Speakers', 'LinkedIn Impressions', 'In-Person Audience', 'International Speakers'],
+                    blocks: [
+                        { h: 'Consistent and accelerated growth', p: 'In three editions, the Summit presented significant audience growth, with an increase of over 180% in in-person participation, going from 250 participants in 2023 to 702 professionals in 2025.' },
+                        { h: 'Audience Evolution', p: 'Historical consolidation of the mineral sector\'s engagement with open innovation.' },
+                        { h: 'Brand Loyalty', p: 'We demonstrated a partner retention rate of <span class="gradient-text font-bold text-2xl">87.5%</span> between the latest editions.' }
+                    ],
+                    charts: {
+                        evolution: 'Audience Evolution (In-Person)',
+                        decision: 'Decision Power',
+                        decisionDesc: 'Majority share composed of high-level management positions.',
+                        highMgmt: 'High Management Profile',
+                        highMgmtDesc: 'The Summit is attended by those who decide: 58.5% of the audience is leadership (C-Level and Managers).',
+                        excellence: 'Proven Excellence & Real Networking',
+                        excellenceDesc: 'Exceptional satisfaction history, with NPS consistently high in the excellence zone, generating over 200 direct strategic connections.'
+                    }
+                },
+                trilha: {
+                    head: 'Value Curation',
+                    title: 'The DNA of Innovation in Our Editions',
+                    subtitle: 'Explore the themes and strategic milestones that consolidated the Summit as the premier stage for mineral innovation.',
+                    btn: 'Explore Edition'
+                },
+                flywheel: {
+                    head: 'The Inspiration',
+                    title: 'Mining Innovation Summit 2026',
+                    subtitle: 'Innovation at the Speed of Value',
+                    nodes: ['STRATEGY AND CAPITAL', 'GREEN FINANCE', 'SCALE SCIENCE', 'APPLIED RESEARCH', 'REPUTATION AND STEWARDSHIP', 'CULTURE AND HIGH PERFORMANCE'],
+                    p1: 'The Mining Innovation Summit 2026 consolidates innovation as a discipline of execution.',
+                    p2: 'We move beyond the conceptual debate to focus on the metric that defines contemporary leadership: the organizational capacity to transform innovation into measurable value. In the rhythm of our Flywheel, intelligence converts into results, and the future becomes a present asset.',
+                    p3: 'Through the Innovation Flywheel structure, we organize and connect the vectors that sustain strategic decisions in the mineral sector: the rigor of applied research, the strategic vision of the capital market, and the scaling power of high-performance heavy industries. <span class="text-slate-900 font-bold">This is the essential forum for those who decide — and for those who build the conditions for the decision.</span>',
+                    acts: [
+                        { h: 'Relevance of Strategic Assets', p: 'Mineral resources are consolidating as the world\'s highest-value asset in the new data economy. It is time for a new execution cadence.' },
+                        { h: 'The Friction of Execution', p: 'Alignment between Board, executive leadership, and operations becomes a critical condition for scaling innovation responsibly.' },
+                        { h: 'The Speed of Value', p: 'When Capital, Science, and Execution work in sync, the flywheel spins on its own. Innovation becomes the perpetual engine of profit and perennity.' }
+                    ],
+                    vectors: {
+                        title: 'Strategic Vectors',
+                        subtitle: 'Translating our vision into fundamental pillars of impact and delivery',
+                        v: [
+                            { t: 'Direction', d: 'Capital & Board:<br><span class="font-normal text-slate-500 text-sm">Define the direction of value</span>' },
+                            { t: 'Pillar', d: 'R&D and Science:<br><span class="font-normal text-slate-500 text-sm">Value foundations</span>' },
+                            { t: 'Speed', d: 'Scale & Technology:<br><span class="font-normal text-slate-500 text-sm">Speed to value</span>' },
+                            { t: 'Perennity', d: 'Reputation & People:<br><span class="font-normal text-slate-500 text-sm">Value perennity</span>' }
+                        ]
+                    }
+                },
+                agenda: {
+                    head: 'Value Acceleration',
+                    title: '2026 Thematic Axes',
+                    subtitle: 'Our goal is to structure content and programming around the 6 axes of the flywheel.',
+                    dynamics: 'Event Dynamics',
+                    dynamicsDesc: 'MIS 2026 breaks with traditional models. We created a cadence that blends technical rigor with financial market agility and elite operational experience.',
+                    formats: ['TED Talks Style', 'Fireside Chats', 'Discussion Tables'],
+                    btn: 'View Details'
+                },
+                filter: {
+                    head: 'Curation and Program Guidelines',
+                    title: 'Strategic Filter',
+                    p1: 'For the 2026 edition, we established a rigorous curation criterion: <span class="text-cyan-600 font-bold">rejection of the obvious</span>. We do not want to repeat themes that have already saturated other mining forums.',
+                    p2: 'Our proposal is to leave common ground, abandoning cliches and generic content to deliver technical and strategic depth. The focus is on tangible innovation.',
+                    badTitle: 'Saturated / Obvious (Common Ground)',
+                    badItems: [
+                        '"Mining as fundamental to the energy transition" (Cliche).',
+                        'Generic critical minerals lists and basic geopolitics.',
+                        'Purely theoretical talks on the "potential" of AI.',
+                        'Institutional and abstract ESG without real KPIs.',
+                        'Eternal cycles of "lab" pilots that never reach global scale.'
+                    ],
+                    goodTitle: 'Pragmatic / Value (Our Focus)',
+                    goodBeyond: 'We want to go beyond: Tangible Innovation',
+                    goodItems: [
+                        'Speed to Value: Speed of converting tech into financial value.',
+                        'Green Finance: Real asset pricing and cost of capital.',
+                        'Physical AI: Autonomy, robotics, and hardware on the front line.',
+                        'Science to Business: Applied research with proven scale cases.',
+                        'Tangibility: Execution focus that transforms the balance sheet.'
+                    ]
+                },
+                mission: {
+                    head: 'Speaker Nomination',
+                    title: 'Speaker Curation',
+                    subtitle: 'We have brought together the strategic axes that guide the curation of this edition. When nominating a speaker, consider professionals who lead strategic decisions, projects at scale or relevant organizational transformations, in Brazil and in the world. <strong>Nomination does not necessarily imply the selection of the speaker.</strong>',
+                    btn: 'Nominate Speaker'
+                }
+            }
+        };
+
+        const historyData = {
+            pt: {
+                '2023': { title: 'Summit 2023', mote: 'Construir o presente para liderar o futuro', description: 'A edição de estréia focou em "evangelização". Foi o despertar para o conceito de ecossistema aberto, trazendo o olhar do futurismo aliado a cases de tecnologia aeroespacial e digitalização acelerada.', companies: ['Microsoft', 'Rio Tinto', 'Singularity U', 'Embraer', 'Rockwell', 'CBMM', 'Samarco'], contents: ['IA Generativa e o futuro inteligente', 'Blockchain e Rastreabilidade SMART', 'Mining 4.0', 'Estudos de Futuros', 'Eletrificação na indústria pesada'], speakers: ['Gil Giardelli (Futurista)', 'Tolga Egrilmezer (Rio Tinto)', 'Poliana Reis Abreu (Singularity U)', 'Daniel Moczydlower (Embraer)'], sponsors: ['Accenture', 'Hexagon', 'Nexa', 'Vale'] },
+                '2024': { title: 'Summit 2024', mote: 'Porque inovar na mineração vale a pena', description: 'Foco absoluto em justificativa econômica e ROI. O evento trouxe a discussão de como a inovação sai da prateleira para impactar a inteligência operacional e a resiliência da cadeia.', companies: ['NTT Data', 'Innomotics', 'Hexagon', 'Sotreq', 'Vale', 'IBRAM', 'EY', 'Ausenso'], contents: ['Digitalização e Conectividade Operacional', 'Integração OT/IT e Scale-up Digital', 'Automação de Frotas', 'O Novo Paradigma da Mineração: Circularidade'], speakers: ['Paolo Gessini - Agência Espacial Brasileira', 'Eduardo de Andrea - Petrobrás', 'Ozge Guney-Altay - Universidade de Chicago', 'Keyvan Macedo - Natura'], sponsors: ['Accenture', 'Anglo American', 'EY', 'Hatch', 'Hexagon', 'MRN', 'Samarco', 'Vale'] },
+                '2025': { title: 'Summit 2025', mote: 'Mining for the future', description: 'Uma edição que coloca a inovação no centro das decisões que moldam o futuro da mineração. Mais do que responder a demandas de ESG, discutimos como a inovação se torna motor de competitividade, resiliência e geração de valor ao longo de toda a cadeia mineral.', companies: ['Vale', 'Samarco', 'Anglo American', 'Gerdau', 'Colorado School of Mines', 'ITV'], contents: ['Inovação como estratégia', 'Descarbonização', 'Upcycling de rejeitos', 'Digitalização da operação', 'Liderança para a transformação'], speakers: ['Ana Sanches - Anglo American', 'Carlos Mello – CSN', 'Gustavo Pimenta - Vale', 'Marcelo Pereira - AngloGold Ashanti', 'Rika Nakazawa - NTT Data', 'Ruben Fernandes - Anglo American', 'Silvio Meira', 'Paul Mitchell - EY', 'Ana Cunha'], sponsors: ['Accenture', 'Anglo American', 'Ausenco', 'EY', 'Hatch', 'Hexagon', 'Innomotics', 'Kinross', 'Hydro', 'Samarco', 'NTT DATA', 'Sotreq', 'Vale'] }
+            },
+            en: {
+                '2023': { title: 'Summit 2023', mote: 'Building the present to lead the future', description: 'The debut edition focused on "evangelization". It was an awakening to the concept of an open ecosystem, bringing futurism perspectives combined with aerospace technology and accelerated digitalization.', companies: ['Microsoft', 'Rio Tinto', 'Singularity U', 'Embraer', 'Rockwell', 'CBMM', 'Samarco'], contents: ['Generative AI and the smart future', 'Blockchain and SMART Traceability', 'Mining 4.0', 'Future Studies', 'Electrification in heavy industry'], speakers: ['Gil Giardelli (Futurist)', 'Tolga Egrilmezer (Rio Tinto)', 'Poliana Reis Abreu (Singularity U)', 'Daniel Moczydlower (Embraer)'], sponsors: ['Accenture', 'Hexagon', 'Nexa', 'Vale'] },
+                '2024': { title: 'Summit 2024', mote: 'Why innovating in mining pays off', description: 'Absolute focus on economic justification and ROI. The event brought the discussion of how innovation leaves the shelf to impact operational intelligence and supply chain resilience.', companies: ['NTT Data', 'Innomotics', 'Hexagon', 'Sotreq', 'Vale', 'IBRAM', 'EY', 'Ausenso'], contents: ['Digitalization and Operational Connectivity', 'OT/IT Integration and Digital Scale-up', 'Fleet Automation', 'The New Paradigm: Circularity'], speakers: ['Paolo Gessini - Brazilian Space Agency', 'Eduardo de Andrea - Petrobras', 'Ozge Guney-Altay - University of Chicago', 'Keyvan Macedo - Natura'], sponsors: ['Accenture', 'Anglo American', 'EY', 'Hatch', 'Hexagon', 'MRN', 'Samarco', 'Vale'] },
+                '2025': { title: 'Summit 2025', mote: 'Mining for the future', description: 'An edition that places innovation at the heart of decisions shaping the future of mining. More than responding to ESG demands, we discussed how innovation becomes an engine for competitiveness, resilience, and value generation across the mineral chain.', companies: ['Vale', 'Samarco', 'Anglo American', 'Gerdau', 'Colorado School of Mines', 'ITV'], contents: ['Innovation as strategy', 'Decarbonization', 'Tailings Upcycling', 'Operational Digitalization', 'Leadership for transformation'], speakers: ['Ana Sanches - Anglo American', 'Carlos Mello – CSN', 'Gustavo Pimenta - Vale', 'Marcelo Pereira - AngloGold Ashanti', 'Rika Nakazawa - NTT Data', 'Ruben Fernandes - Anglo American', 'Silvio Meira', 'Paul Mitchell - EY', 'Ana Cunha'], sponsors: ['Accenture', 'Anglo American', 'Ausenco', 'EY', 'Hatch', 'Hexagon', 'Innomotics', 'Kinross', 'Hydro', 'Samarco', 'NTT DATA', 'Sotreq', 'Vale'] }
+            }
+        };
+
+        const agendaData = {
+            pt: {
+                'e1': { id: 'Eixo 1', title: 'ESTRATÉGIA E CAPITAL', description: 'Debate pragmático sobre as prioridades de investimento dos conselhos. O balanceamento estratégico entre a longevidade dos ativos e o financiamento da inovação necessária para a competitividade de longo prazo.', theme: 'Board Decisions: Valor da Inovação', format: 'Fireside Chat Estratégico', targets: ['CEOs Globais', 'Chairs de Estratégia', 'CFOs'], content_points: ['Priorização de investimentos em inovação', 'Critérios de avaliação de valor para tecnologia', 'O ativo mineral na era dos dados'], form: 'https://forms.office.com/Pages/ResponsePage.aspx?id=WyX-_69TbE-wTSaeLsRaRIjFhiv0CpVCuO0tlZZvxbpUNUgzT1FUUEZZWUxJMTFWOTdRMlFFSDlIVS4u&embed=true' },
+                'e2': { id: 'Eixo 2', title: 'FINANÇAS VERDES', description: 'Como estratégias de finanças sustentáveis influenciam o custo de capital e a atratividade de ativos no contexto da transição global. O papel das metas climáticas e investimentos em sustentabilidade na percepção de valor pelo mercado.', theme: 'ESG Valuation: O mercado precificando ativos', format: 'Talk estilo TED + Mesa Redonda', targets: ['CFOs', 'Managing Partners', 'Fundos ESG'], content_points: ['Instrumentos financeiros para a transição', 'Precificação de ativos sustentáveis', 'Sustentabilidade e acesso a capital'], form: 'https://forms.office.com/Pages/ResponsePage.aspx?id=WyX-_69TbE-wTSaeLsRaRIjFhiv0CpVCuO0tlZZvxbpUNkdNSFNTTktNVjQySVk0SjY5SkRHV01DNC4u&embed=true' },
+                'e3': { id: 'Eixo 3', title: 'CIÊNCIA DA ESCALA', description: 'Superando a fase experimental. Como organizações transformam soluções testadas em capacidades operacionais replicáveis em ambientes complexos e distribuídos.', theme: 'From Pilot to Pit: Escala como desafio estratégico', format: 'Mesa Redonda Cross-Industry', targets: ['VPs de Operação', 'Gerentes de Projetos', 'Tecnólogos'], content_points: ['Modelos de implantação em larga escala', 'Governança da transição From Pilot to Pit', 'Aprendizados cross-industry sobre escala'], form: 'https://forms.office.com/Pages/ResponsePage.aspx?id=WyX-_69TbE-wTSaeLsRaRIjFhiv0CpVCuO0tlZZvxbpUMFlZWjhGNEpDUlRWQ1RMMEwyQkNZM0tGNC4u&embed=true' },
+                'e4': { id: 'Eixo 4', title: 'PESQUISA APLICADA', description: 'Pesquisa aplicada com viabilidade técnica comprovada e potencial de implementação no curto e médio prazo. Conectando conhecimento científico a desafios reais da operação.', theme: 'Science to Business: Fluxos de Alto Impacto', format: 'Science Pitches (Sessões Dinâmicas)', targets: ['CTOs', 'Academia Aplicada', 'Líderes de P&D'], content_points: ['Novos materiais e circularidade industrial', 'Aceleração da maturidade tecnológica', 'Integração entre laboratório e operação', 'Pesquisas promissoras para a mineração'], form: 'https://forms.office.com/r/PzSb2K6Wgf?embed=true' },
+                'e5': { id: 'Eixo 5', title: 'REPUTAÇÃO E STEWARDSHIP', description: 'Como o uso de tecnologia e a gestão responsável de recursos alteram a percepção pública do setor e impactam o custo de capital e retenção de talentos.', theme: 'Dados como Ativo de Negócio e Reputação', format: 'Painel Estratégico de Lideranças', targets: ['Líderes de Sustentabilidade', 'Gestores de Reputação'], content_points: ['Uso futuro de áreas mineradas', 'Stewardship orientado por dados em tempo real', 'Tecnologia garantindo a licença social'], form: 'https://forms.office.com/Pages/ResponsePage.aspx?id=WyX-_69TbE-wTSaeLsRaRIjFhiv0CpVCuO0tlZZvxbpUMzBESDBVNDdLUUE1QUs1VksyVUo3M1YyVC4u&embed=true' },
+                'e6': { id: 'Eixo 6', title: 'CULTURA E ALTA PERFORMANCE', description: 'Como culturas orientadas à disciplina, aprendizado contínuo e gestão de risco sustentam a velocidade do Innovation Flywheel em ambientes de alta complexidade.', theme: 'Mentalidade de Alta Performance: Disciplina e Adaptação', format: 'Painel Inspiracional de Encerramento', targets: ['CHROs', 'Diretores Operacionais', 'Líderes de Time'], content_points: ['Execução sob pressão e incerteza', 'Cultura de performance em ambientes críticos', 'Agilidade organizacional em escala'], form: 'https://forms.office.com/r/BLD9Bg4Y7c?embed=true' }
+            },
+            en: {
+                'e1': { id: 'Axis 1', title: 'STRATEGY AND CAPITAL', description: 'Pragmatic debate on board investment priorities. Strategic balancing between asset longevity and financing innovation for long-term competitiveness.', theme: 'Board Decisions: Value of Innovation', format: 'Strategic Fireside Chat', targets: ['Global CEOs', 'Strategy Chairs', 'CFOs'], content_points: ['Prioritizing innovation investments', 'Value assessment criteria for tech', 'Mineral assets in the data era'], form: 'https://forms.office.com/Pages/ResponsePage.aspx?id=WyX-_69TbE-wTSaeLsRaRIjFhiv0CpVCuO0tlZZvxbpUNUgzT1FUUEZZWUxJMTFWOTdRMlFFSDlIVS4u&embed=true' },
+                'e2': { id: 'Axis 2', title: 'GREEN FINANCE', description: 'How sustainable finance strategies influence capital costs and asset attractiveness. The role of climate targets and sustainability investments in market value perception.', theme: 'ESG Valuation: Market pricing assets', format: 'TED-style Talk + Round Table', targets: ['CFOs', 'Managing Partners', 'ESG Funds'], content_points: ['Financial instruments for transition', 'Pricing sustainable assets', 'Sustainability and access to capital'], form: 'https://forms.office.com/Pages/ResponsePage.aspx?id=WyX-_69TbE-wTSaeLsRaRIjFhiv0CpVCuO0tlZZvxbpUNkdNSFNTTktNVjQySVk0SjY5SkRHV01DNC4u&embed=true' },
+                'e3': { id: 'Axis 3', title: 'SCALE SCIENCE', description: 'Moving beyond the experimental phase. How organizations transform tested solutions into replicable capabilities in complex and distributed environments.', theme: 'From Pilot to Pit: Scale as strategic challenge', format: 'Cross-Industry Round Table', targets: ['Operations VPs', 'Project Managers', 'Technologists'], content_points: ['Large-scale deployment models', 'From Pilot to Pit governance', 'Cross-industry scale learnings'], form: 'https://forms.office.com/Pages/ResponsePage.aspx?id=WyX-_69TbE-wTSaeLsRaRIjFhiv0CpVCuO0tlZZvxbpUMFlZWjhGNEpDUlRWQ1RMMEwyQkNZM0tGNC4u&embed=true' },
+                'e4': { id: 'Axis 4', title: 'APPLIED RESEARCH', description: 'Applied research with proven technical feasibility and near-term implementation potential. Connecting scientific knowledge to real operation challenges.', theme: 'Science to Business: High Impact Flows', format: 'Science Pitches', targets: ['CTOs', 'Academia', 'R&D Leaders'], content_points: ['New materials and industrial circularity', 'Accelerating maturity', 'Lab and operation integration', 'Promising research for mining'], form: 'https://forms.office.com/r/PzSb2K6Wgf?embed=true' },
+                'e5': { id: 'Axis 5', title: 'REPUTATION AND STEWARDSHIP', description: 'How technology and responsible resource management change public perception and impact capital costs and talent retention.', theme: 'Data as Business and Reputation Asset', format: 'Strategic Leadership Panel', targets: ['Sustainability Leaders', 'Reputation Managers'], content_points: ['Future use of mined areas', 'Data-driven stewardship', 'Tech ensuring social license'], form: 'https://forms.office.com/Pages/ResponsePage.aspx?id=WyX-_69TbE-wTSaeLsRaRIjFhiv0CpVCuO0tlZZvxbpUNFRTSEc4RDM0MTJSSUdNVllJM0dRMkQ0Qi4u&embed=true' },
+                'e6': { id: 'Axis 6', title: 'CULTURE AND HIGH PERFORMANCE', description: 'How cultures oriented toward discipline, continuous learning, and risk management sustain Flywheel speed in high complexity.', theme: 'High Performance Mindset: Discipline & Adaptation', format: 'Inspirational Closing Panel', targets: ['CHROs', 'Operational Directors', 'Team Leaders'], content_points: ['Execution under pressure', 'Performance culture in critical settings', 'Organizational agility at scale'], form: 'https://forms.office.com/r/BLD9Bg4Y7c?embed=true' }
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'pt' ? 'en' : 'pt';
+            document.body.className = `flex h-screen lang-${currentLang}`;
+            renderSidebar();
+            renderContent();
+        }
+
+        function showSection(id) {
+            currentSection = id;
+            renderSidebar();
+            renderContent();
+            closeModal();
+        }
+
+        function renderSidebar() {
+            const nav = translations[currentLang].nav;
+            const container = document.getElementById('sidebar-nav');
+            container.innerHTML = nav.map(item => `
+                <button onclick="showSection('${item.id}')" 
+                    class="nav-item ${currentSection === item.id ? 'active' : ''} ${item.id === 'agenda' ? 'nav-item-highlight' : ''} w-full text-left p-4 rounded-lg text-sm font-semibold uppercase tracking-wide flex items-center gap-3 transition-colors">
+                    <span>${item.num}</span> ${item.text}
+                </button>
+            `).join('');
+        }
+
+        function renderContent() {
+            const t = translations[currentLang];
+            const container = document.getElementById('main-content');
+            
+            if (currentSection === 'intro') {
+                container.innerHTML = `
+                    <section class="section-content active">
+                        <div class="max-w-6xl">
+                            <h3 class="text-xs font-bold text-cyan-600 uppercase tracking-[0.3em] mb-4">${t.intro.head}</h3>
+                            <h2 class="text-5xl font-bold text-slate-800 mb-8 leading-tight">${t.intro.title.split('Summit')[0]} <span class="gradient-text">Summit</span></h2>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                                <div class="glass-card p-10 rounded-[2.5rem]"><p class="text-lg text-slate-600 leading-relaxed">${t.intro.desc}</p></div>
+                                <div class="relative h-[500px] rounded-[3.5rem] overflow-hidden shadow-2xl border-4 border-white group">
+                                    <img src="https://i.postimg.cc/mDKHTHK6/54594242808-1aed0376ab-c.jpg" alt="Summit" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/30 to-transparent"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>`;
+            } else if (currentSection === 'history') {
+                container.innerHTML = `
+                    <section class="section-content active">
+                        <div class="mb-10 text-left">
+                            <h3 class="text-xs font-bold text-cyan-600 uppercase tracking-[0.3em] mb-4">${t.history.head}</h3>
+                            <h2 class="text-4xl font-bold text-slate-800 mb-2">${t.history.title}</h2>
+                            <p class="text-slate-600 font-medium text-lg max-w-4xl italic leading-relaxed">${t.history.subtitle}</p>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 mb-12">
+                            ${[80.4, '380k', '+160', '+30h', '50', '20k', '+1300', '20%'].map((val, i) => `
+                                <div class="glass-card p-3 rounded-xl text-center border-b-4 border-${i < 3 || i === 6 ? 'cyan' : 'purple'}-500">
+                                    <span class="block text-2xl font-black text-slate-800 tracking-tighter" style="letter-spacing: -0.05em">${val}</span>
+                                    <span class="text-[8px] font-bold text-slate-400 uppercase leading-[1.1] block mt-1" style="letter-spacing: -0.02em">${t.history.stats[i]}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="flex flex-col xl:flex-row gap-12 mb-16">
+                            <div class="flex-1 space-y-10">
+                                ${t.history.blocks.map((b, i) => `
+                                    <div class="flex gap-5">
+                                        <div class="w-1.5 h-auto gradient-bg rounded-full"></div>
+                                        <div><h4 class="text-xl font-bold ${i === 1 ? 'text-slate-800' : 'text-cyan-600'} uppercase mb-3" style="${i === 1 ? 'font-weight: 800;' : ''}">${b.h}</h4><p class="text-base text-slate-600 leading-relaxed">${b.p}</p></div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div class="flex-1 flex flex-col items-center justify-center bg-white/50 p-12 rounded-[3rem] border border-white">
+                                <h4 class="text-xs font-black text-slate-800 uppercase tracking-widest mb-12" style="font-weight: 800;">${t.history.charts.evolution}</h4>
+                                <div class="bar-chart-container">
+                                    <div class="bar bg-slate-300" style="height: ${(250/702)*100}%;"><span class="bar-value text-slate-500">250</span><span class="bar-label">2023</span></div>
+                                    <div class="bar bg-cyan-400" style="height: ${(572/702)*100}%;"><span class="bar-value text-cyan-600">572</span><span class="bar-label">2024</span></div>
+                                    <div class="bar gradient-bg" style="height: 100%;"><span class="bar-value text-slate-800">702</span><span class="bar-label">2025</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col xl:flex-row gap-12 mb-10">
+                            <div class="flex-1 flex items-center gap-12 bg-white/50 p-12 rounded-[3.5rem] border border-white">
+                                <div class="donut-container">
+                                    <svg class="donut-svg" width="160" height="160" viewBox="0 0 160 160"><circle class="donut-bg" cx="80" cy="80" r="72"></circle><circle class="donut-fill" cx="80" cy="80" r="72"></circle></svg>
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-3xl font-bold text-slate-800">58,5%</span></div>
+                                </div>
+                                <div><h4 class="text-xl font-bold text-slate-800 uppercase mb-3" style="font-weight: 800;">${t.history.charts.decision}</h4><p class="text-base text-slate-500 leading-relaxed font-medium italic">${t.history.charts.decisionDesc}</p></div>
+                            </div>
+                            <div class="flex-1 space-y-10">
+                                <div class="flex gap-5"><div class="w-1.5 h-auto bg-purple-400 rounded-full"></div><div><h4 class="text-xl font-bold text-slate-800 uppercase mb-3">${t.history.charts.highMgmt}</h4><p class="text-base text-slate-600 leading-relaxed">${t.history.charts.highMgmtDesc}</p></div></div>
+                                <div class="flex gap-5"><div class="w-1.5 h-auto bg-purple-400 rounded-full"></div><div><h4 class="text-xl font-bold text-slate-800 uppercase mb-3">${t.history.charts.excellence}</h4><p class="text-base text-slate-600 leading-relaxed">${t.history.charts.excellenceDesc}</p></div></div>
+                            </div>
+                        </div>
+                    </section>`;
+            } else if (currentSection === 'trilha') {
+                container.innerHTML = `
+                    <section class="section-content active">
+                        <div class="mb-12 text-left">
+                            <h3 class="text-xs font-bold text-cyan-600 uppercase tracking-[0.4em] mb-4">${t.trilha.head}</h3>
+                            <h2 class="text-5xl font-bold text-slate-800 mb-4">${t.trilha.title.split('Nossas')[0]} <span class="gradient-text">${currentLang === 'pt' ? 'Nossas Edições' : 'Our Editions'}</span></h2>
+                            <p class="text-slate-500 font-medium text-lg max-w-4xl italic">${t.trilha.subtitle}</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                            ${['2023', '2024', '2025'].map(year => `
+                                <div onclick="openModal('${year}')" class="glass-card p-12 rounded-[2.5rem] cursor-pointer hover:shadow-2xl hover:-translate-y-2 transition-all border-b-8 border-slate-200 group relative overflow-hidden text-left">
+                                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-cyan-50/5 rounded-full"></div>
+                                    <div class="text-5xl font-bold text-slate-300 group-hover:text-cyan-500 transition-colors mb-6">${year}</div>
+                                    <h4 class="text-[10px] font-bold text-slate-400 uppercase mb-2 tracking-[0.2em]">Mote</h4>
+                                    <p class="text-xl font-bold text-slate-700 leading-tight mb-8">${historyData[currentLang][year].mote}</p>
+                                    <div class="flex items-center gap-2 text-xs font-bold text-cyan-600 uppercase tracking-widest">
+                                        <span>${t.trilha.btn}</span>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7-7-7"></path></svg>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </section>`;
+            } else if (currentSection === 'flywheel') {
+                container.innerHTML = `
+                    <section class="section-content active">
+                        <div class="max-w-6xl mx-auto flex flex-col items-center">
+                            <div class="w-full mb-10 text-left">
+                                <h3 class="text-xs font-bold text-cyan-600 uppercase tracking-[0.3em] mb-4">${t.flywheel.head}</h3>
+                                <h2 class="text-4xl font-bold mb-4 italic uppercase tracking-wider"><span class="gradient-text" style="font-weight: 800;">${t.flywheel.title}</span></h2>
+                                <h3 class="text-2xl font-bold text-slate-800 tracking-tight">${t.flywheel.subtitle}</h3>
+                                <div class="h-1.5 w-24 gradient-bg rounded-full mt-4"></div>
+                            </div>
+                            <div class="flywheel-scene">
+                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 gradient-bg rounded-full flex items-center justify-center text-white text-center font-black z-30 border-4 border-white/20 shadow-[0_0_80px_rgba(6,182,212,0.3)]">
+                                    <span style="letter-spacing: 0.25em; font-size: 13px; line-height: 1.6;">THE INNOVATION<br>FLYWHEEL</span>
+                                </div>
+                                <svg class="absolute inset-0 w-full h-full opacity-20 z-10" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="black" stroke-width="0.2" stroke-dasharray="2,2" /></svg>
+                                <div class="flywheel-rotation-layer z-20">
+                                    ${t.flywheel.nodes.map((node, i) => {
+                                        const angle = (i * 60 - 90) * (Math.PI / 180);
+                                        const r = 185;
+                                        const left = Math.cos(angle) * r + 250 - 67.5;
+                                        const top = Math.sin(angle) * r + 250 - 67.5;
+                                        return `<div class="node" style="top: ${top}px; left: ${left}px;">${node}</div>`;
+                                    }).join('')}
+                                </div>
+                            </div>
+                            <div class="mt-12 max-w-5xl text-center space-y-8">
+                                <div class="space-y-4 px-10">
+                                    <p class="text-3xl font-medium text-slate-800 leading-tight">${t.flywheel.p1}</p>
+                                    <p class="text-xl font-light text-slate-700 leading-normal">${t.flywheel.p2}</p>
+                                </div>
+                                <div class="pt-6 border-t border-slate-200"><p class="text-lg font-medium text-slate-500 leading-snug max-w-4xl mx-auto">${t.flywheel.p3}</p></div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+                                ${t.flywheel.acts.map((act, i) => `
+                                    <div class="p-8 glass-card rounded-[2.5rem] border-t-8 border-${i === 1 ? 'purple' : 'cyan'}-500 shadow-lg text-left">
+                                        <span class="text-xs font-black text-${i === 1 ? 'purple' : 'cyan'}-600 uppercase tracking-[0.3em] mb-4 block">${currentLang === 'pt' ? 'Ato' : 'Act'} ${i+1}</span>
+                                        <h5 class="text-lg font-bold text-slate-800 mb-6 leading-tight">${act.h}</h5>
+                                        <p class="text-lg text-slate-600 leading-relaxed font-medium">${act.p}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div class="mt-20 w-full border-t border-slate-200 pt-16 pb-12">
+                                <div class="text-center mb-12"><h4 class="text-sm font-black text-slate-400 uppercase tracking-[0.4em] mb-4">${t.flywheel.vectors.title}</h4></div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                                    ${t.flywheel.vectors.v.map((v, i) => `<div class="p-6 border-b-2 border-${i % 2 === 0 ? 'cyan' : 'purple'}-500 flex flex-col items-center text-center"><span class="text-xs font-black text-${i % 2 === 0 ? 'cyan' : 'purple'}-600 uppercase mb-3">${v.t}</span><p class="text-base font-bold text-slate-800 leading-tight">${v.d}</p></div>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </section>`;
+            } else if (currentSection === 'filter') {
+                container.innerHTML = `
+                    <section class="section-content active">
+                        <div class="mb-10 text-left">
+                            <h3 class="text-xs font-bold text-cyan-600 uppercase tracking-[0.3em] mb-4">${t.filter.head}</h3>
+                            <h2 class="text-4xl font-bold text-slate-800 mb-6">${t.filter.title.split('Estratégico')[0]} <span class="gradient-text">${currentLang === 'pt' ? 'Estratégico' : 'Filter'}</span></h2>
+                        </div>
+                        <div class="glass-card p-10 rounded-[2.5rem] mb-12 border-slate-200 bg-white/60 text-left">
+                            <p class="text-slate-700 text-lg leading-relaxed font-medium">${t.filter.p1}</p>
+                            <p class="text-slate-500 text-base leading-relaxed mt-4 italic">${t.filter.p2}</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 text-left">
+                            <div class="glass-card p-12 rounded-[3.5rem] border-red-50 relative overflow-hidden">
+                                <h4 class="text-red-500 font-black uppercase tracking-widest text-xs mb-10">${t.filter.badTitle}</h4>
+                                <ul class="space-y-6 text-slate-400 text-base italic">
+                                    ${t.filter.badItems.map(item => `<li class="flex items-start gap-3">✕ <span>${item}</span></li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="glass-card p-12 rounded-[3.5rem] border-emerald-50 bg-emerald-50/20 relative overflow-hidden">
+                                <h4 class="text-emerald-600 font-black uppercase tracking-widest text-xs mb-10">${t.filter.goodTitle}</h4>
+                                <div class="mb-8 font-bold text-slate-800 text-lg italic underline">${t.filter.goodBeyond}</div>
+                                <ul class="space-y-6 text-slate-700 text-base font-semibold">
+                                    ${t.filter.goodItems.map(item => `<li class="flex items-start gap-3">✓ <span>${item}</span></li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    </section>`;
+            } else if (currentSection === 'agenda') {
+                container.innerHTML = `
+                    <section class="section-content active">
+                        <div class="mb-12 text-left">
+                            <h3 class="text-xs font-bold text-cyan-600 uppercase tracking-[0.4em] mb-4">${t.agenda.head}</h3>
+                            <h2 class="text-5xl font-bold text-slate-800 mb-6 leading-tight">${t.agenda.title.split('2026')[0]} <span class="gradient-text">2026</span></h2>
+                            <p class="text-slate-600 font-medium text-lg max-w-4xl mb-8 leading-relaxed">${t.agenda.subtitle}</p>
+                            <div class="glass-card p-8 rounded-3xl border-cyan-100/50 bg-white/40 flex flex-col md:flex-row gap-8 items-center">
+                                <div class="flex-1 text-left">
+                                    <h4 class="text-xs font-black text-cyan-600 uppercase tracking-widest mb-3">${t.agenda.dynamics}</h4>
+                                    <p class="text-sm text-slate-500 leading-relaxed italic">${t.agenda.dynamicsDesc}</p>
+                                </div>
+                                <div class="flex flex-wrap gap-3 justify-center">
+                                    ${t.agenda.formats.map(f => `<span class="px-4 py-2 bg-white border border-slate-100 rounded-full text-[11px] font-bold text-slate-600 shadow-sm uppercase tracking-wider">${f}</span>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            ${Object.keys(agendaData[currentLang]).map(key => {
+                                const axis = agendaData[currentLang][key];
+                                return `
+                                    <div onclick="openModalAgenda('${key}')" class="glass-card p-10 rounded-[2.5rem] cursor-pointer hover:shadow-2xl hover:-translate-y-2 transition-all border-b-8 border-slate-200 group relative overflow-hidden text-left">
+                                        <div class="absolute -right-4 -top-4 w-20 h-20 bg-cyan-50/5 rounded-full"></div>
+                                        <span class="text-[10px] font-black text-cyan-600 uppercase tracking-widest mb-4 block">${axis.id}</span>
+                                        <h4 class="text-xl font-bold text-slate-800 leading-tight mb-4 group-hover:text-cyan-600 transition-colors uppercase">${axis.title}</h4>
+                                        <p class="text-xs text-slate-500 leading-relaxed mb-8 line-clamp-3">${axis.description}</p>
+                                        <button class="text-xs font-bold text-cyan-600 uppercase tracking-widest flex items-center gap-2">${t.agenda.btn} <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7-7-7"></path></svg></button>
+                                    </div>`;
+                            }).join('')}
+                        </div>
+                    </section>`;
+            } else if (currentSection === 'mission') {
+                container.innerHTML = `
+                    <section class="section-content active">
+                        <div class="mb-12 text-left">
+                            <h3 class="text-xs font-bold text-cyan-600 uppercase tracking-[0.4em] mb-4">${t.mission.head}</h3>
+                            <h2 class="text-5xl font-bold text-slate-800 mb-6 leading-tight">${t.mission.title}</h2>
+                            <p class="text-slate-600 font-medium text-lg max-w-4xl mb-12">${t.mission.subtitle}</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            ${Object.keys(agendaData[currentLang]).map(key => {
+                                const axis = agendaData[currentLang][key];
+                                return `
+                                    <div class="glass-card p-10 rounded-[2.5rem] flex flex-col justify-between border-slate-200">
+                                        <div>
+                                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block text-left">${axis.id}</span>
+                                            <h4 class="text-xl font-bold text-slate-800 leading-tight mb-4 uppercase text-left">${axis.title}</h4>
+                                            <p class="text-xs text-slate-500 leading-relaxed mb-8 italic text-left">"${axis.theme}"</p>
+                                        </div>
+                                        <button onclick="openModalForm('${key}')" class="w-full py-4 gradient-bg rounded-2xl text-white font-bold text-xs uppercase tracking-widest shadow-lg hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
+                                            <span>${t.mission.btn}</span>
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                        </button>
+                                    </div>`;
+                            }).join('')}
+                        </div>
+                    </section>`;
+            }
+        }
+
+        function openModalForm(eixoId) {
+            const data = agendaData[currentLang][eixoId];
+            const content = `
+                <div class="text-left flex flex-col gap-6">
+                    <div class="border-b border-slate-100 pb-4 no-print">
+                        <span class="text-[10px] font-black text-cyan-600 uppercase tracking-[0.4em] mb-2 block">${data.id}</span>
+                        <h2 class="text-2xl font-bold text-slate-800 leading-tight">${data.title}</h2>
+                    </div>
+                    
+                    <div class="iframe-container no-print">
+                        <iframe width="100%" height="520px" src="${data.form}" 
+                        frameborder="0" marginwidth="0" marginheight="0" 
+                        style="border: none; max-width:100%; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);" 
+                        allowfullscreen webkitallowfullscreen mozallowfullscreen msallowfullscreen></iframe>
+                    </div>
+
+                    <div class="print-link hidden">
+                        <p class="font-bold text-slate-800 mb-2">Para indicação de palestrante do ${data.id}, acesse o formulário através do link abaixo:</p>
+                        <p class="text-cyan-600">${data.form}</p>
+                    </div>
+                </div>`;
+            document.getElementById('modal-body').innerHTML = content;
+            document.getElementById('modal-overlay').classList.add('active');
+        }
+
+        function openModal(year) {
+            const data = historyData[currentLang][year];
+            const content = `
+                <div class="text-left flex flex-col gap-8">
+                    <div class="border-b border-slate-100 pb-6">
+                        <h3 class="text-[10px] font-bold text-cyan-500 uppercase mb-3 tracking-[0.4em]">${data.title}</h3>
+                        <h2 class="text-4xl font-bold text-slate-800 leading-tight italic">${data.mote}</h2>
+                    </div>
+                    <p class="text-slate-600 text-lg leading-relaxed">${data.description}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                        <div class="space-y-8">
+                            <div>
+                                <h4 class="text-[11px] font-bold text-slate-400 uppercase mb-4 tracking-widest">${currentLang === 'pt' ? 'Empresas Participantes' : 'Participating Companies'}</h4>
+                                <div class="flex flex-wrap gap-2">${data.companies.map(c => `<span class="px-4 py-1.5 bg-slate-50 border border-slate-100 rounded-full text-[11px] font-bold text-slate-600">${c}</span>`).join('')}</div>
+                            </div>
+                            <div>
+                                <h4 class="text-[11px] font-bold text-slate-400 uppercase mb-4 tracking-widest">${currentLang === 'pt' ? 'Palestrantes de Destaque' : 'Featured Speakers'}</h4>
+                                <div class="grid grid-cols-1 gap-2">${data.speakers.map(s => `<div class="flex items-center gap-3 text-sm text-slate-700 p-2 font-medium bg-slate-50/50 rounded-xl"><svg class="w-4 h-4 text-purple-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"></path></svg>${s}</div>`).join('')}</div>
+                            </div>
+                        </div>
+                        <div class="space-y-8">
+                            <div>
+                                <h4 class="text-[11px] font-bold text-slate-400 uppercase mb-4 tracking-widest">${currentLang === 'pt' ? 'Patrocinadores' : 'Sponsors'}</h4>
+                                <div class="flex flex-wrap gap-2">${data.sponsors.map(s => `<span class="px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-full text-[11px] font-bold text-emerald-700">${s}</span>`).join('')}</div>
+                            </div>
+                            <div>
+                                <h4 class="text-[11px] font-bold text-slate-400 uppercase mb-4 tracking-widest">${currentLang === 'pt' ? 'Temas Estratégicos' : 'Strategic Themes'}</h4>
+                                <ul class="grid gap-3">${data.contents.map(i => `<li class="flex items-center gap-3 text-sm text-slate-700 font-semibold bg-cyan-50/30 p-3 rounded-xl border border-cyan-100/50"><span class="w-1.5 h-1.5 rounded-full gradient-bg"></span> ${i}</li>`).join('')}</ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            document.getElementById('modal-body').innerHTML = content;
+            document.getElementById('modal-overlay').classList.add('active');
+        }
+
+        function openModalAgenda(id) {
+            const data = agendaData[currentLang][id];
+            const content = `
+                <div class="text-left flex flex-col gap-8">
+                    <div class="border-b border-slate-100 pb-6">
+                        <span class="text-[11px] font-black text-cyan-600 uppercase tracking-[0.4em] mb-3 block text-left text-uppercase">${data.id}</span>
+                        <h2 class="text-4xl font-bold text-slate-800 leading-tight mb-2 text-left">${data.title}</h2>
+                        <p class="text-xl text-slate-500 italic font-medium text-left">"${data.theme}"</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                        <div class="space-y-10">
+                            <div><h4 class="text-[11px] font-bold text-slate-400 uppercase mb-4 tracking-widest">${currentLang === 'pt' ? 'Objetivo Estratégico' : 'Strategic Objective'}</h4><p class="text-slate-600 text-base leading-relaxed">${data.description}</p></div>
+                            <div class="glass-card p-6 rounded-3xl bg-slate-50/50 border-slate-100"><h4 class="text-[11px] font-bold text-slate-400 uppercase mb-4 tracking-widest">${currentLang === 'pt' ? 'Formato Proposto' : 'Proposed Format'}</h4><span class="px-4 py-2 bg-white rounded-full text-xs font-black text-purple-600 border border-purple-100 shadow-sm">${data.format}</span></div>
+                        </div>
+                        <div class="space-y-10">
+                            <div><h4 class="text-[11px] font-bold text-slate-400 uppercase mb-4 tracking-widest">${currentLang === 'pt' ? 'Tópicos em Discussão' : 'Topics Under Discussion'}</h4><ul class="grid gap-3">${data.content_points.map(p => `<li class="flex items-start gap-3 text-sm text-slate-700 font-semibold bg-white p-4 rounded-2xl border border-slate-100 shadow-sm"><svg class="w-5 h-5 text-cyan-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>${p}</li>`).join('')}</ul></div>
+                            <div><h4 class="text-[11px] font-bold text-slate-400 uppercase mb-4 tracking-widest">${currentLang === 'pt' ? 'Perfis Alvo' : 'Target Profiles'}</h4><div class="flex flex-wrap gap-2">${data.targets.map(t => `<span class="px-3 py-1 bg-slate-100 rounded-full text-[10px] font-bold text-slate-600">${t}</span>`).join('')}</div></div>
+                        </div>
+                    </div>
+                </div>`;
+            document.getElementById('modal-body').innerHTML = content;
+            document.getElementById('modal-overlay').classList.add('active');
+        }
+
+        function closeModal() { document.getElementById('modal-overlay').classList.remove('active'); }
+        function handleBackdropClick(event) { if (event.target.id === 'modal-overlay') closeModal(); }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Setup inicial
+        renderSidebar();
+        renderContent();
+    </script>
+</body>
+</html>
